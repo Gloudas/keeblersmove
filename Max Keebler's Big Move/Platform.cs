@@ -21,18 +21,27 @@ namespace Max_Keebler_s_Big_Move
         const int horizontalVelocity = -2;
         private Rectangle leftSide;
         private Rectangle topSide;
+        public Rectangle platformRect;
 
         public Platform(int startingX, int startingY)
         {
             position = new Vector2(startingX, startingY);
-           
+            platformRect = new Rectangle(startingX, startingY, platformWidth, platformHeight);
         }
 
         public void Update()
         {
             position.X += horizontalVelocity;
+            platformRect.X += horizontalVelocity;
+            
+            // shouldn't be using these anymore
             leftSide = new Rectangle( (int)position.X, ((int)position.Y + 3), 2, (platformHeight - 2));
             topSide = new Rectangle( (int)position.X, (int)position.Y, (platformWidth-2), 2);   // possible have a dead pixel at the topleft?
+        }
+
+        public bool isColliding(Rectangle playerRect)
+        {
+            return platformRect.Intersects(playerRect);
         }
 
         public bool isCollidingLeft(Rectangle playerRect)
@@ -42,7 +51,7 @@ namespace Max_Keebler_s_Big_Move
 
         public void onCollisionLeft(Player player)
         {
-            player.playerPos.X = (position.X - 30);
+             player.playerPos.X = (position.X - 30);
         }
 
         public bool isCollidingTop(Rectangle playerRect)
@@ -59,6 +68,21 @@ namespace Max_Keebler_s_Big_Move
         public bool outOfBounds()
         {
             return (position.X + 200 < 0);
+        }
+
+        public int getWidth()
+        {
+            return platformWidth;
+        }
+
+        public int getHeight()
+        {
+            return platformHeight;
+        }
+
+        public Point getCenter()
+        {
+            return platformRect.Center;
         }
 
     }

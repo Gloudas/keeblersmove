@@ -1,3 +1,5 @@
 Content\Player.xnb
 Content\Platform1.xnb
+Platform.cs
+Player.cs
 Game1.cs

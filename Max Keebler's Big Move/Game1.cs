@@ -22,8 +22,8 @@ namespace Max_Keebler_s_Big_Move
         public int canvasHeight, canvasWidth;
         KeyboardState keyboard = Keyboard.GetState();
         Player player;
-        Platform myPlatform;
         List<Platform> Platforms;
+        int horizontalCollisionDistance_platform, verticalCollisionDistance_platform;
 
         public Game1()
         {
@@ -42,13 +42,15 @@ namespace Max_Keebler_s_Big_Move
             // TODO: Add your initialization logic here
             canvasHeight = graphics.GraphicsDevice.Viewport.Height;
             canvasWidth = graphics.GraphicsDevice.Viewport.Width;
-            player = new Player(new Vector2(canvasWidth / 4, canvasHeight-80), this);
+            player = new Player(new Vector2( (canvasWidth-150), canvasHeight-60), this);
             Platforms = new List<Platform>();
-            for (int i = 0; i < 5; i++)
+            for (int i = 5; i < 8; i++)
             {
                 Platform platform = new Platform((i * (canvasWidth / 3)), (canvasHeight - 20));
                 Platforms.Add(platform);
             }
+            horizontalCollisionDistance_platform = (player.getWidth() / 2) + (Platforms[0].getWidth() / 2);
+            verticalCollisionDistance_platform = (player.getHeight() / 2) + (Platforms[0].getHeight() / 2);
             base.Initialize();
         }
 
@@ -84,10 +86,17 @@ namespace Max_Keebler_s_Big_Move
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
             keyboard = Keyboard.GetState();
-            player.Update(gameTime, keyboard);
+            // update all collidables (platforms, enemies, bullets) and their positions first
             foreach(Platform myPlatform in Platforms)
             {
                 myPlatform.Update();
+                if (myPlatform.outOfBounds())
+                {
+                    myPlatform.position.X = canvasWidth;
+                    myPlatform.platformRect.X = canvasWidth;
+                }
+                // Instead of having the platforms process player collision, we will have player process all collisions
+                /*
                 if (myPlatform.isCollidingLeft(player.playerRect) &&
                     myPlatform.isCollidingTop(player.playerRect))
                 {
@@ -101,14 +110,14 @@ namespace Max_Keebler_s_Big_Move
                     }
 
                     
-                    /*if ((player.playerPos.Y+60) > (myPlatform.position.Y + 15))
-                    {
-                        myPlatform.onCollisionLeft(player);
-                    }
-                    else
-                    {
-                        myPlatform.onCollisionTop(player);
-                    }*/
+                    //if ((player.playerPos.Y+60) > (myPlatform.position.Y + 15))
+                    //{
+                    //    myPlatform.onCollisionLeft(player);
+                    //}
+                    //else
+                    //{
+                    //    myPlatform.onCollisionTop(player);
+                    //}
                 }
                 else if (myPlatform.isCollidingTop(player.playerRect))
                 {
@@ -117,14 +126,68 @@ namespace Max_Keebler_s_Big_Move
                 else if (myPlatform.isCollidingLeft(player.playerRect))
                 {
                     myPlatform.onCollisionLeft(player);
-                }    
-                else if(myPlatform.outOfBounds())
-                {
-                    myPlatform.position.X = canvasWidth;
+                }  */
+            } // this updates platforms
+            // then update player
+            player.Update(gameTime, keyboard);
+            base.Update(gameTime);
+        }
+
+        // processes all player collisions resulting from horizontal movement
+        public void updatePlayerHorizontalMovement(Rectangle futurePosition)
+        {
+            //Vector2 playerPos = player.playerPos;
+            int playerCenterX, platformCenterX, collisionDistance, centerDistance;
+            foreach (Platform nextPlatform in Platforms){
+                if (nextPlatform.isColliding(futurePosition)){
+                    
+                    // find out the amount of pixels they are colliding by
+                    playerCenterX = futurePosition.Center.X;
+                    platformCenterX = nextPlatform.getCenter().X;
+                    centerDistance = Math.Abs(playerCenterX - platformCenterX);
+                    collisionDistance = (horizontalCollisionDistance_platform - centerDistance);
+                    
+                    // move the player by that distance (in the correct direction)
+                    if (playerCenterX < platformCenterX) {
+                        futurePosition.X -= collisionDistance;
+                    } else {
+                        futurePosition.X += collisionDistance;
+                    }
                 }
             }
+            // all collisions have been accounted for, so update playerPos to reflect new position
+            player.playerPos.X = futurePosition.X;
+        }
 
-            base.Update(gameTime);
+        // processes all player collisions resulting from vertical movement
+        public void updatePlayerVerticalMovement(Rectangle futurePosition)
+        {
+            //Vector2 playerPos = player.playerPos;
+            int playerCenterY, platformCenterY, collisionDistance, centerDistance;
+            foreach (Platform nextPlatform in Platforms)
+            {
+                if (nextPlatform.isColliding(futurePosition))
+                {
+                    // find out the amount of pixels they are colliding by
+                    playerCenterY = futurePosition.Center.Y;
+                    platformCenterY = nextPlatform.getCenter().Y;
+                    centerDistance = Math.Abs(playerCenterY - platformCenterY);
+                    collisionDistance = (verticalCollisionDistance_platform - centerDistance);
+
+                    // move the player by that distance (in the correct direction)
+                    if (playerCenterY < platformCenterY)
+                    {
+                        futurePosition.Y -= collisionDistance;
+                        player.inAir = false; // player has landed on a platform
+                    }
+                    else
+                    {
+                        futurePosition.Y += collisionDistance;
+                    }
+                }
+            }
+            // all collisions have been accounted for, so update playerPos to reflect new position
+            player.playerPos.Y = futurePosition.Y;
         }
 
         /// <summary>

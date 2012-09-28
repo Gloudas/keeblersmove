@@ -12,3 +12,4 @@ C:\Users\Gloudas\Desktop\XNA-Game-1\Content\Platform1.xnb
 C:\Users\Gloudas\Desktop\XNA-Game-1\Max Keebler's Big Move.exe
 C:\Users\Gloudas\Desktop\XNA-Game-1\Max Keebler's Big Move.pdb
 C:\Users\Gloudas\Desktop\XNA-Game-1\Platform.cs
+C:\Users\Gloudas\Desktop\XNA-Game-1\Player.cs
